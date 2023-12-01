@@ -40,6 +40,7 @@ export class Project implements IProject {
         console.log("New project created", this);
     };
 
+    // creates the UI for the project
     setUI() {
         // Project data UI
         if (this.ui && Object.keys(this.ui).length !== 0) return console.warn("UI already set");
