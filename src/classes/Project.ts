@@ -23,7 +23,7 @@ export class Project implements IProject {
     // Class properties
     ui: HTMLDivElement;
     cost: number = 0;
-    progress: number = 5;
+    progress: number = 0.5;
     id: string;
 
     constructor(data: IProject) {

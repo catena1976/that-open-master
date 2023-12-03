@@ -44,6 +44,10 @@ export class ProjectsManager {
         if(name) name.textContent = project.name
         const description = detailsPage.querySelector("[data-project-info='description']")
         if(description) description.textContent = project.description
+        const cardName = detailsPage.querySelector("[data-project-info='cardName']")
+        if(cardName) cardName.textContent = project.name
+        const cardDescription = detailsPage.querySelector("[data-project-info='cardDescription']")
+        if(cardDescription) cardDescription.textContent = project.description
         const status = detailsPage.querySelector("[data-project-info='status']")
         if(status) status.textContent = project.status
         const userRole = detailsPage.querySelector("[data-project-info='userRole']")
@@ -58,8 +62,8 @@ export class ProjectsManager {
         if(cost) cost.textContent = `$${project.cost}`
         const progress = detailsPage.querySelector("[data-project-info='progress']") as HTMLDivElement
         if(progress) {
-            progress.textContent = `${project.progress}%`
-            progress.style.width = `${project.progress}%`;
+            progress.textContent = `${project.progress * 100}%`
+            progress.style.width = `${project.progress * 100}%`;
         }
     }
 
