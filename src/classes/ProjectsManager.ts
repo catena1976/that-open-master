@@ -8,6 +8,14 @@ export class ProjectsManager {
 
     constructor(container: HTMLElement) {
         this.ui = container
+        const project = this.newProject({
+            name: "Default Project",
+            description: "This is just a default app project",
+            status: "active",
+            userRole: "architect",
+            finishDate: new Date()
+        })
+        // project.ui.click()
     }
 
     newProject(data: IProject) {
@@ -16,17 +24,43 @@ export class ProjectsManager {
         const project = new Project(data)
 
         project.ui.addEventListener('click', () => {
+            this.setDetailsPage(project)
             const projectsPage = document.getElementById("projects-page") as HTMLDivElement
             const detailsPage = document.getElementById("project-details") as HTMLDivElement
             if(!(projectsPage && detailsPage)) return console.warn("Pages not found")
             projectsPage.style.display = "none"
             detailsPage.style.display = "flex"
         })
-
         this.ui.append(project.ui)
         this.list.push(project)
         this.getTotalCost()
         return project;
+    }
+
+    private setDetailsPage(project: Project) {
+        const detailsPage = document.getElementById("project-details") as HTMLDivElement
+        if(!detailsPage) return console.warn("Page not found")
+        const name = detailsPage.querySelector("[data-project-info='name']")
+        if(name) name.textContent = project.name
+        const description = detailsPage.querySelector("[data-project-info='description']")
+        if(description) description.textContent = project.description
+        const status = detailsPage.querySelector("[data-project-info='status']")
+        if(status) status.textContent = project.status
+        const userRole = detailsPage.querySelector("[data-project-info='userRole']")
+        if(userRole) userRole.textContent = project.userRole
+        const finishDate = detailsPage.querySelector("[data-project-info='finishDate']")
+        if(finishDate) {
+            let dateString = project.finishDate
+            let dateObj = new Date(dateString)
+            finishDate.textContent = dateObj.toDateString() 
+        }
+        const cost = detailsPage.querySelector("[data-project-info='cost']")
+        if(cost) cost.textContent = `$${project.cost}`
+        const progress = detailsPage.querySelector("[data-project-info='progress']") as HTMLDivElement
+        if(progress) {
+            progress.textContent = `${project.progress}%`
+            progress.style.width = `${project.progress}%`;
+        }
     }
 
     getProjectById(id: string) {
@@ -82,6 +116,7 @@ export class ProjectsManager {
                     alert(error.message)
                 }
             }
+            console.log("Imported projects: ", this.list)
         })
 
         input.addEventListener('change', () => {
@@ -90,8 +125,6 @@ export class ProjectsManager {
             reader.readAsText(filesList[0])
         })
         input.click()
-        
-        console.log("Imported projects: ", this.list)
     }
 
     getTotalCost() {
