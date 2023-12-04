@@ -19,6 +19,11 @@ export class ProjectsManager {
     }
 
     newProject(data: IProject) {
+
+        // Check if name lenght is greater than 5
+        if(data.name.length < 5 ) throw new Error("Project name must be at least 5 characters long")
+
+        // Check if project name is already in use
         const nameInUse = this.list.map((project) => project.name) // Get all project names
         if(nameInUse.includes(data.name)) throw new Error("There is already a project with that name!  Please, try again with a different name." )
         const project = new Project(data)

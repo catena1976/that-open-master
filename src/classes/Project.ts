@@ -40,15 +40,32 @@ export class Project implements IProject {
         console.log("New project created", this);
     };
 
+    // Method to generate a random color
+    generateRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    // Method to get the initials of the project name
+    getProjectInitials() {
+        return this.name.split(' ').map(word => word[0]).join('');
+    }
+
     // creates the UI for the project
     setUI() {
         // Project data UI
         if (this.ui && Object.keys(this.ui).length !== 0) return console.warn("UI already set");
         this.ui = document.createElement("div")
         this.ui.className = "project-card"
+        const initials = this.getProjectInitials()
+        const color = this.generateRandomColor()
         this.ui.innerHTML = `
         <div class="card-header">
-            <p style="background-color: #ca8134; padding: 10px; border-radius: 8px; aspect-ratio: 1;">HC</p>
+            <p style="background-color: ${color}; padding: 10px; border-radius: 8px; aspect-ratio: 1; text-transform: uppercase;">${initials}</p>
             <div>
                 <h5>${this.name}</h5>
                 <p>${this.description}</p>

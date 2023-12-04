@@ -50,32 +50,40 @@ if (projectForm) {
 
         // Get form data and finish date
         const formData = new FormData(projectForm);
-        const finishDateString = formData.get("finishDate") as string;
-        const finishDate = new Date(finishDateString);
+        let finishDateString = formData.get("finishDate") as string;
+        let finishDate = new Date(finishDateString);
 
         // Check if finish date is valid
-        if (!isNaN(finishDate.getTime())) {
-            // Create new project and add to manager
-            const projectData: IProject = {
-                name: formData.get("name") as string,
-                description: formData.get("description") as string,
-                status: formData.get("status") as ProjectStatus,
-                userRole: formData.get("userRole") as UserRole,
-                finishDate: finishDate,
-            };
-
-            try {
-                projectsManager.newProject(new Project(projectData));
-                // Reset form and close modal
-                projectForm.reset();
-                toggleModal("new-project-modal", false);
-            } catch (err) {
-                toggleModal("alert-modal", true)
-                alertMessage.innerHTML = err.message;
+        if (isNaN(finishDate.getTime())) {
+            // If not valid, set a default date
+            finishDate = new Date();
+            finishDate.setDate(finishDate.getDate() + 30);
+            } else {
+                // If the date is in the past, throw an error
+                if (finishDate.getTime() < Date.now()) {
+                    toggleModal("alert-modal", true)
+                    alertMessage.innerHTML = "Please, select a future date.";
+                    return;
+                }
             }
 
-        } else {
-            console.error("Invalid date format for finishDate");
+        // Create new project and add to manager
+        const projectData: IProject = {
+            name: formData.get("name") as string,
+            description: formData.get("description") as string,
+            status: formData.get("status") as ProjectStatus,
+            userRole: formData.get("userRole") as UserRole,
+            finishDate: finishDate
+        }
+
+        try {
+            projectsManager.newProject(new Project(projectData));
+            // Reset form and close modal
+            projectForm.reset();
+            toggleModal("new-project-modal", false);
+        } catch (err) {
+            toggleModal("alert-modal", true)
+            alertMessage.innerHTML = err.message;
         }
     });
 
