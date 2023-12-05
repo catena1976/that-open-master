@@ -5,6 +5,7 @@ export class ProjectsManager {
     list: Project[] = []
     ui: HTMLElement
     totalCost: number = 0
+    private selectedProjectId: string | null = null
 
     constructor(container: HTMLElement) {
         this.ui = container
@@ -28,7 +29,7 @@ export class ProjectsManager {
         if(nameInUse.includes(data.name)) throw new Error("There is already a project with that name!  Please, try again with a different name." )
         const project = new Project(data)
 
-        project.ui.addEventListener('click', () => {
+        project.ui?.addEventListener('click', () => {
             this.setDetailsPage(project)
             const projectsPage = document.getElementById("projects-page") as HTMLDivElement
             const detailsPage = document.getElementById("project-details") as HTMLDivElement
@@ -36,9 +37,13 @@ export class ProjectsManager {
             projectsPage.style.display = "none"
             detailsPage.style.display = "flex"
         })
-        this.ui.append(project.ui)
+        if (project.ui) {
+            this.ui.append(project.ui);
+        }
         this.list.push(project)
         this.getTotalCost()
+        console.log("New project created", this);
+        console.log("Projects list: ", this.list)
         return project;
     }
 
@@ -70,6 +75,16 @@ export class ProjectsManager {
             progress.textContent = `${project.progress * 100}%`
             progress.style.width = `${project.progress * 100}%`;
         }
+        this.selectProject(project)
+    }
+
+    getSelectedProject(): string | null {
+        return this.selectedProjectId
+    }
+
+    selectProject(project: Project) : void {
+        this.selectedProjectId = project.id;
+        console.log("Selected project: ", this.selectedProjectId);
     }
 
     getProjectById(id: string) {
@@ -86,10 +101,40 @@ export class ProjectsManager {
         return project
     }
 
+    editProject(updatedProject: Project) {
+        const projectIndex = this.list.findIndex((project) => {
+            return project.id === this.selectedProjectId;
+        });
+    
+        if (projectIndex !== -1) {
+            updatedProject.setUI();
+            
+            // delete old project
+            this.list.splice(projectIndex, 1);
+
+            // updatet ui
+            this.ui.innerHTML = "";
+            for (const project of this.list) {
+                if (project.ui) {
+                    this.ui.append(project.ui);
+                }
+            }
+
+            // create new project
+            this.newProject(updatedProject);
+            this.setDetailsPage(updatedProject);
+  
+        } else {
+            console.error(`Project with id ${updatedProject.id} not found.`);
+        }
+        console.log("Project edited: ", updatedProject)
+        console.log("Projects list: ", this.list)
+    }
+
     deleteProject(id: string) {
         const project = this.getProjectById(id)
         if(!project) return console.warn("Project not found")
-        project.ui.remove()
+        project.ui?.remove()
 
         const remaining = this.list.filter((project) => {
             return project.id !== id

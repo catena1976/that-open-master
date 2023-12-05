@@ -21,7 +21,7 @@ export class Project implements IProject {
     finishDate: Date;
 
     // Class properties
-    ui: HTMLDivElement;
+    ui: HTMLDivElement | null = null;
     cost: number = 0;
     progress: number = 0.5;
     id: string;
@@ -35,9 +35,10 @@ export class Project implements IProject {
     
         this.id = uuidv4()
 
+        // Create UI
+        this.getProjectInitials()
+        this.generateRandomColor()
         this.setUI()
-
-        console.log("New project created", this);
     };
 
     // Method to generate a random color
@@ -52,7 +53,7 @@ export class Project implements IProject {
 
     // Method to get the initials of the project name
     getProjectInitials() {
-        return this.name.split(' ').map(word => word[0]).join('');
+        return this.name.split(' ').slice(0.,2).map(word => word[0]).join('');
     }
 
     // creates the UI for the project
