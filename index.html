@@ -64,6 +64,46 @@
                     </div>
                 </form>
             </dialog>
+            <dialog id="edit-project-modal">
+                <form id="edit-project-form">
+                    <h2>Edit Project</h2>
+                    <div class="input-list">
+                        <div class="form-field-container">
+                            <label><span class="material-symbols-rounded">apartment</span>Name</label>
+                            <input name="name" type="text" placeholder="What's the name of your project?">
+                            <p style="color: gray; font-size: var(--font-sm); margin-top: 5px; font-style: italic;">TIP: Give it a short name</p>
+                        </div>
+                        <div class="form-field-container">
+                            <label><span class="material-symbols-rounded">subject</span>Description</label>
+                            <textarea name="description" cols="30" rows="5" placeholder="Give your project a nice description! So people is jealous about it."></textarea>
+                        </div>
+                        <div class="form-field-container">
+                            <label><span class="material-symbols-rounded">person</span>Role</label>
+                            <select name="userRole">
+                                <option>Archiect</option>
+                                <option>Engineer</option>
+                                <option>Developer</option>
+                            </select>
+                        </div>
+                        <div class="form-field-container">
+                            <label><span class="material-symbols-rounded">not_listed_location</span>Status</label>
+                            <select name="status">
+                                <option>Pending</option>
+                                <option>Active</option>
+                                <option>Finished</option>
+                            </select>
+                        </div>
+                        <div class="form-field-container">
+                            <label for="finishDate"><span class="material-symbols-rounded">calendar_month</span>Finish Date</label>
+                            <input name="finishDate" type="date">
+                        </div>
+                    </div>
+                    <div style="display: flex; margin: 10px 0px 10px auto; column-gap: 10px;">
+                        <button type="button" id="cancel-edit-project-btn" style="background-color: transparent;">Cancel</button>
+                        <button type="submit" style="background-color: rgb(18, 145, 18);">Accept</button>
+                    </div>
+                </form>
+            </dialog>            
             <header>
                 <h2>Projects</h2>
                 <div style="display: flex; align-items: center; column-gap: 15px;">
@@ -88,7 +128,7 @@
                     <div class="dashboard-card" style="padding: 30px 0;">
                             <div style="display: flex; align-items: center; padding: 0px 30px; justify-content: space-between; margin-bottom: 30px;">
                                 <p style="background-color: #ca8134; aspect-ratio: 1; border-radius: 100px; padding: 12px; font-size: 20px;">HC</p>
-                                <button class="btn-secondary"><P style="width: 100%;">Edit</P></button>
+                                <button id="edit-project-btn" class="btn-secondary"><P style="width: 100%;">Edit</P></button>
                             </div>
                             <div style="padding: 0 30px;">
                                 <div>
