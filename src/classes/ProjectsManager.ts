@@ -1,4 +1,5 @@
 import { IProject, Project } from "./Project.ts"
+import { ITodo, Todo } from "./Todo.ts"
 
 export class ProjectsManager {
 
@@ -6,6 +7,7 @@ export class ProjectsManager {
     ui: HTMLElement
     totalCost: number = 0
     private selectedProjectId: string | null = null
+    private selectedTodoId: string | null = null
 
     constructor(container: HTMLElement) {
         this.ui = container
@@ -14,21 +16,83 @@ export class ProjectsManager {
             description: "This is just a default app project",
             status: "active",
             userRole: "architect",
-            finishDate: new Date()
+            finishDate: new Date(),
+            id: "default-project-id",
+            cost: 1000,
+            progress: 0.5
         })
+
+        project.addTodo(new Todo({
+            projectId: project.id,
+            title: "Default Todo",
+            description: "This is just a default todo",
+            finishDate: new Date(),
+            completed: true
+        }))
+
+        this.setTodosList(project)
         // project.ui.click()
     }
 
-    newProject(data: IProject) {
+    getSelectedProject(): string | null {
+        return this.selectedProjectId
+    }
+
+    selectProject(project: Project) : void {
+        this.selectedProjectId = project.id;
+        console.log("Selected project: ", this.selectedProjectId);
+    }
+
+    getProjectById(id: string) {
+        const project = this.list.find( (project) => {
+            return project.id === id
+        })
+        return project
+    }
+
+    getProjectByName(name: string) {
+        const project = this.list.find( (project) => {
+            return project.name === name
+        })
+        return project
+    }
+
+    selectTodo(todo: Todo): void {
+        this.selectedTodoId = todo.id;
+        console.log("Selected todo: ", this.selectedTodoId);
+    }
+
+    getSelectedTodo(): string | null {
+        return this.selectedTodoId
+    }
+
+    getTodoById(id: string) {
+        const project = this.list.find( (project) => {
+            return project.id === this.selectedProjectId
+        })
+        if(!project) return console.warn("Project not found")
+        const todo = project.todosList.find( (todo) => {
+            return todo.id === id
+        })
+        console.log("Todo found: ", todo)
+        return todo
+    }
+
+    newProject(data: Project) {
 
         // Check if name lenght is greater than 5
         if(data.name.length < 5 ) throw new Error("Project name must be at least 5 characters long")
 
+        // Check if project with the same id already exists
+        const existingProjectIndex = this.list.findIndex((project) => project.id === data.id);
+
         // Check if project name is already in use
         const nameInUse = this.list.map((project) => project.name) // Get all project names
         if(nameInUse.includes(data.name)) throw new Error("There is already a project with that name!  Please, try again with a different name." )
+
         const project = new Project(data)
 
+        // Add event listener to project ui
         project.ui?.addEventListener('click', () => {
             this.setDetailsPage(project)
             const projectsPage = document.getElementById("projects-page") as HTMLDivElement
@@ -76,30 +140,122 @@ export class ProjectsManager {
             progress.style.width = `${project.progress * 100}%`;
         }
         this.selectProject(project)
+        this.setTodosList(project)
     }
 
-    getSelectedProject(): string | null {
-        return this.selectedProjectId
+    private setTodosList(project: Project) {
+        const todosList = document.getElementById("todos-list") as HTMLDivElement
+        if(!todosList) return console.warn("List not found")
+        todosList.innerHTML = ""
+        for (const todo of project.todosList) {
+            const todoItem = document.createElement("div")
+            todoItem.className = "todo-item"
+
+            let dateObj = new Date(todo.finishDate)
+            let formattedDate = dateObj.toDateString()
+
+            let completedIcon = todo.completed ? 'check_box' : 'check_box_outline_blank';
+            todo.completed? todoItem.style.backgroundColor = 'lightgreen' : todoItem.style.backgroundColor = 'coral'; 
+
+            todoItem.innerHTML = `
+                <div style="display: flex; column-gap: 25; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; column-gap: 25px; align-items: center;">
+                        <span class="material-symbols-rounded" style="padding: 10px; background-color: #686868; border-radius: 10px;">construction</span>
+                        <p >${todo.title}</p>
+                    </div>
+                    <p style="white-space: nowrap; margin-left: 10px;">${formattedDate}</p>
+                    <div class="material-symbols-rounded" style="padding: 15px;">${completedIcon}</div>
+                    <!-- <div class="material-symbols-rounded" style="padding: 10px; background-color: #686868; border-radius: 10px;">check_box</div> -->
+                </div>
+            `
+
+            // add event listener to todo item
+            todoItem.addEventListener('click', () => this.setTodoDetailsPage(todo))
+            todosList.append(todoItem)
+        }
     }
 
-    selectProject(project: Project) : void {
-        this.selectedProjectId = project.id;
-        console.log("Selected project: ", this.selectedProjectId);
+    // Get cancel edit details todo button and add event listener
+    // const cancelEditTodoButton = document.getElementById("cancel-edit-todo-details-button") as HTMLButtonElement
+
+    // Method to edit a todo
+    setTodoDetailsPage(data: Todo) {
+        const projectSelected = this.getSelectedProject()
+        if(!projectSelected) return console.warn("No project selected")
+        const project = this.getProjectById(projectSelected)
+        const todo = project?.getTodoById(data.id)
+        console.log("setTodoDetailsPage > Todo to edit: ", todo)
+        const todoDetails = document.getElementById("todo-details-modal") as HTMLDialogElement
+
+        const todoDetailsForm = document.getElementById("todo-details-form") as HTMLFormElement
+        if(todoDetailsForm) {
+            const titleElement = todoDetailsForm.elements.namedItem("todo-details-title") as HTMLInputElement
+            const descriptionElement = todoDetailsForm.elements.namedItem("todo-details-description") as HTMLInputElement
+            const finishDateElement = todoDetailsForm.elements.namedItem("todo-details-finish-date") as HTMLInputElement
+            const completedElement = todoDetailsForm.elements.namedItem("todo-details-completed") as HTMLInputElement
+
+            if(todo) {
+                if(titleElement) titleElement.value = todo.title
+                if(descriptionElement) descriptionElement.value = todo.description
+                if(finishDateElement) {
+                    const finishDate = new Date(todo.finishDate);
+                    if (!isNaN(finishDate.getTime())) {
+                        finishDateElement.value = finishDate.toISOString().split('T')[0];
+                    } else {
+                        console.error('Invalid finish date:', todo.finishDate);
+                    }
+                }
+                if(completedElement) completedElement.checked = todo.completed
+                this.selectTodo(todo)
+            }
+        }
+        todoDetails.showModal()
     }
 
-    getProjectById(id: string) {
-        const project = this.list.find( (project) => {
-            return project.id === id
-        })
-        return project
+    // Method to add a todo to the current project
+    newTodoToCurrentProject(data: ITodo) {
+        const currentProject = this.getProjectById(data.projectId);
+        if (currentProject) {
+        // Check if name lenght is greater than 5
+            // if(data.title.length < 5 ) throw new Error("ToDo title must be at least 5 character")
+
+            const todo = new Todo(data);
+            currentProject.addTodo(todo);
+
+            this.setDetailsPage(currentProject)
+        } else {
+            console.error(`Project with id ${this.selectedProjectId} not found.`);
+        }
+    }
+    
+
+    // Method to edit a todo
+    editTodoInCurrentProject(updatedTodo: Todo) {
+        // console.log("Todo to edit: ", updatedTodo);
+        const currentProject = this.getProjectById(updatedTodo.projectId);
+        // console.log("Current project: ", currentProject);
+        if (currentProject) {
+            const todo = currentProject.getTodoById(updatedTodo.id);
+            // console.log("Todo to edit: ", todo);
+            if (todo) {
+                (todo.title !== updatedTodo.title)? todo.title = updatedTodo.title : todo.title = todo.title;
+                (todo.description !== updatedTodo.description)? todo.description = updatedTodo.description : todo.description = todo.description;
+                (todo.finishDate !== updatedTodo.finishDate)? todo.finishDate = updatedTodo.finishDate : todo.finishDate = todo.finishDate;
+                (todo.completed !== updatedTodo.completed)? todo.completed = updatedTodo.completed : todo.completed = todo.completed;
+
+                console.log("Todo edited: ", todo);
+                console.log("Todos list: ", currentProject.todosList);
+
+                this.setDetailsPage(currentProject)
+            } else {
+                console.error(`Todo with id ${updatedTodo.id} not found.`);
+            }
+        } else {
+            console.error(`Project with id ${updatedTodo.projectId} not found.`);
+        }
     }
 
-    getProjectByName(name: string) {
-        const project = this.list.find( (project) => {
-            return project.name === name
-        })
-        return project
-    }
+
 
     editProject(updatedProject: Project) {
         const projectIndex = this.list.findIndex((project) => {
@@ -107,12 +263,27 @@ export class ProjectsManager {
         });
     
         if (projectIndex !== -1) {
-            updatedProject.setUI();
-            
-            // delete old project
-            this.list.splice(projectIndex, 1);
+            // Update the existing project
+            this.list[projectIndex].name = updatedProject.name;
+            this.list[projectIndex].description = updatedProject.description;
+            this.list[projectIndex].status = updatedProject.status;
+            this.list[projectIndex].userRole = updatedProject.userRole;
+            this.list[projectIndex].finishDate = updatedProject.finishDate;
+            this.list[projectIndex].cost = updatedProject.cost;
+            this.list[projectIndex].progress = updatedProject.progress;
 
             // updatet ui
+            this.list[projectIndex].setUI();
+
+            // Add event listener to project ui
+            this.list[projectIndex].ui?.addEventListener('click', () => {
+                this.setDetailsPage(updatedProject)
+                const projectsPage = document.getElementById("projects-page") as HTMLDivElement
+                const detailsPage = document.getElementById("project-details") as HTMLDivElement
+                if(!(projectsPage && detailsPage)) return console.warn("Pages not found")
+                projectsPage.style.display = "none"
+                detailsPage.style.display = "flex"
+            })
             this.ui.innerHTML = "";
             for (const project of this.list) {
                 if (project.ui) {
@@ -120,8 +291,6 @@ export class ProjectsManager {
                 }
             }
 
-            // create new project
-            this.newProject(updatedProject);
             this.setDetailsPage(updatedProject);
   
         } else {
@@ -162,7 +331,7 @@ export class ProjectsManager {
         reader.addEventListener('load', () => {
             const json = reader.result
             if(!json) return console.warn("No file selected")
-            const projects: IProject[] = JSON.parse(json as string)
+            const projects: Project[] = JSON.parse(json as string)
             for (const projectData of projects) {
                 try {
                     this.newProject(projectData)

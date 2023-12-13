@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import { Todo } from './Todo';
 
 export type ProjectStatus = "pending" | "active" | "finished";
 export type UserRole = "architect" | "engineer" | "developer";
@@ -24,20 +25,23 @@ export class Project implements IProject {
     ui: HTMLDivElement | null = null;
     cost: number = 0;
     progress: number = 0.5;
-    id: string;
+    id: string = "";
+    todosList: Todo[] = [];
+    iconColor: string = "";
 
-    constructor(data: IProject) {
+    constructor(data: Project) {
 
         // Project data definition
         for (const key in data) {
             this[key] = data[key]
         }
     
-        this.id = uuidv4()
+        (!data.id)? this.id = uuidv4() : this.id = data.id;
+        this.iconColor = data.iconColor || this.generateRandomColor();
 
         // Create UI
         this.getProjectInitials()
-        this.generateRandomColor()
+        // this.generateRandomColor()
         this.setUI()
     };
 
@@ -48,12 +52,25 @@ export class Project implements IProject {
         for (let i = 0; i < 6; i++) {
             color += letters[Math.floor(Math.random() * 16)];
         }
+        this.iconColor = color;
         return color;
     }
 
     // Method to get the initials of the project name
     getProjectInitials() {
-        return this.name.split(' ').slice(0.,2).map(word => word[0]).join('');
+        return this.name.split(' ').slice(0,2).map(word => word[0]).join('');
+    }
+
+    // Method to add a todo to the project
+    addTodo(todo: Todo) {
+        this.todosList.push(todo);
+        console.log("Todo added: ", todo);
+        console.log("Todos list: ", this.todosList);
+    }
+
+    // Get a todo by its id
+    getTodoById(id: string) {
+        return this.todosList.find(todo => todo.id === id);
     }
 
     // creates the UI for the project
@@ -63,7 +80,7 @@ export class Project implements IProject {
         this.ui = document.createElement("div")
         this.ui.className = "project-card"
         const initials = this.getProjectInitials()
-        const color = this.generateRandomColor()
+        const color = this.iconColor
         this.ui.innerHTML = `
         <div class="card-header">
             <p style="background-color: ${color}; padding: 10px; border-radius: 8px; aspect-ratio: 1; text-transform: uppercase;">${initials}</p>

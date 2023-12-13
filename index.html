@@ -166,25 +166,92 @@
                                     <span class="material-symbols-rounded">search</span>
                                     <input type="text" placeholder="Search To-Do by name" style="width: 100%;">
                                 </div>
-                                <span class="material-symbols-rounded">add</span>
+                                <span id="add-todo-btn" class="material-symbols-rounded">add</span>
                             </div>
                         </div>
 
-                        <div style="display: flex; flex-direction: column; row-gap: 20px; padding: 10px 30px;">
+                        <div id="todos-list" style="display: flex; flex-direction: column; row-gap: 20px; padding: 10px 30px;">
                             <div class="todo-item">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                  <div style="display: flex; column-gap: 15px; align-items: center;">
-                                    <span class="material-symbols-rounded" style="padding: 10px; background-color: #686868; border-radius: 10px;">construction</span>
-                                    <p>Make anything here as you want, even something longer.</p>
-                                  </div>
-                                  <p style="text-wrap: nowrap; margin-left: 10px;">Fri, 20 sep</p>
-                                </div>
-                              </div>
+                            </div>
                         </div>
 
                     </div>
                 </div>
             </div>
+            <dialog id="new-todo-modal">
+                <form id="new-todo-form">
+                    <div class="form-field-container">
+                        <label for="todo-title">Title</label>
+                        <input name="todo-title" type="text" required>
+                    </div>
+                    <div class="form-field-container">
+                        <label for="todo-description">Description</label>
+                        <textarea name="todo-description" required></textarea>
+                    </div>
+                    <div class="form-field-container">
+                        <label for="todo-date">Date</label>
+                        <input name="todo-date" type="date" required>
+                    </div>
+                    <div class="form-field-container">
+                        <label for="todo-completed">Completed</label>
+                        <input class="material-symbols-rounded" name="todo-completed" type="checkbox">
+                    </div>
+                    <div style="display: flex; margin: 10px 0px 10px auto; column-gap: 10px;">
+                        <button type="button" id="cancel-new-todo-btn" style="background-color: transparent;">Cancel</button>
+                        <button type="submit" style="background-color: rgb(18, 145, 18);">Add Todo</button>
+                    </div>
+                </form>
+            </dialog>
+            <dialog id="todo-details-modal">
+                <form id="todo-details-form">
+                    <h4>Todo Details</h4>
+                    <div class="form-field-container">
+                        <label for="todo-details-title">Title</label>
+                        <input data-todo-info="title" name="todo-details-title" type="text" readonly>
+                    </div>
+                    <div class="form-field-container">
+                        <label for="todo-details-description">Description</label>
+                        <textarea name="todo-details-description" readonly></textarea>
+                    </div>
+                    <div class="form-field-container">
+                        <label for="todo-details-date">Date</label>
+                        <input name="todo-details-finish-date" type="date" readonly>
+                    </div>
+                    <div class="form-field-container">
+                        <label style="justify-content: center;" for="todo-details-completed">Completed</label>
+                        <input class="material-symbols-rounded" name="todo-details-completed" type="checkbox" disabled>
+                    </div>
+                    <div style="display: flex; margin: 10px 0px 10px auto; column-gap: 10px;">
+                        <button type="button" id="close-todo-details-btn" style="background-color: transparent;">Close</button>
+                        <button id="edit-todo-btn" class="btn-secondary"><P style="width: 100%;">Edit</P></button>
+                    </div>
+                </form>
+            </dialog>
+            <dialog id="edit-todo-modal">
+                <form id="edit-todo-form">
+                    <h4>Todo Edit</h4>
+                    <div class="form-field-container">
+                        <label for="edit-todo-title">Title</label>
+                        <input id="edit-todo-title" type="text">
+                    </div>
+                    <div class="form-field-container">
+                        <label for="edit-todo-description">Description</label>
+                        <textarea id="edit-todo-description"></textarea>
+                    </div>
+                    <div class="form-field-container">
+                        <label for="edit-todo-finish-date">Date</label>
+                        <input id="edit-todo-finish-date" type="date">
+                    </div>
+                    <div class="form-field-container">
+                        <label style="justify-content: center;" for="edit-todo-completed">Completed</label>
+                        <input class="material-symbols-rounded" id="edit-todo-completed" type="checkbox">
+                    </div>
+                    <div style="display: flex; margin: 10px 0px 10px auto; column-gap: 10px;">
+                        <button type="button" id="cancel-edit-todo-btn" style="background-color: transparent;">Close</button>
+                        <button type="submit" id="edit-todo-submit-btn" class="btn-secondary"><P style="width: 100%; ">Accept</P></button>
+                    </div>
+                </form>
+            </dialog>
             <div id="viewer-container" class="dashboard-card"></div>
         </div>
         <div class="page" id="users-page" style="display: none;">
