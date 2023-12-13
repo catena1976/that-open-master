@@ -178,6 +178,12 @@
     width: 100%;
   }
 
+  .todo-item  {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+  }
+
   #users-list {
     display: flex;
     flex-direction: column;
@@ -242,6 +248,7 @@
     border-radius: 10px; 
     background-color: var(--background-100);
     color: white;
+    padding: 20px;
   }
   
   form h2 {
@@ -323,3 +330,16 @@
   .todo-item:hover {
     background-color: var(--primary);
   }
+
+  .checkbox-input {
+    display: none;
+}
+
+.checkbox-icon {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.checkbox-input:checked + .checkbox-icon::before {
+  content: "check_box";
+}
