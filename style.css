@@ -125,10 +125,6 @@
   
   /* Content styles */
   
-  #content {
-  
-  }
-  
   header {
     padding: 30px 40px;
     display: flex;
@@ -141,6 +137,19 @@
     padding: 20px 40px;
     gap: 30px;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+
+  .action-icon {
+    color: darkgray;
+    border-radius: 100%;
+    padding: 4px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .action-icon:hover {
+    background-color: var(--primary);
+    color: white;
   }
 
   .project-card {

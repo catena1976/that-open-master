@@ -1,6 +1,19 @@
 import { IProject, Project } from "./Project.ts"
 import { ITodo, Todo } from "./Todo.ts"
 
+// Function to toggle modal visibility
+function toggleModal(id: string, show: boolean) {
+    const modal = document.getElementById(id) as HTMLDialogElement;
+    modal ? (show ? modal.showModal() : modal.close()) : console.warn("Modal id not found", id);
+};
+
+// Get alert message
+const alertMessage = document.getElementById("alert-message") as HTMLParagraphElement;
+// Get alert button
+const alertButton = document.getElementById("alert-modal-btn");
+// Add event listener to alert button
+alertButton?.addEventListener("click", () => toggleModal("alert-modal", false));
+
 export class ProjectsManager {
 
     list: Project[] = []
@@ -86,31 +99,35 @@ export class ProjectsManager {
         const existingProjectIndex = this.list.findIndex((project) => project.id === data.id);
         if (existingProjectIndex !== -1) {
             this.editProject(new Project(data))
-        }
+            } else {
 
-        // Check if project name is already in use
-        const nameInUse = this.list.map((project) => project.name) // Get all project names
-        if(nameInUse.includes(data.name)) throw new Error("There is already a project with that name!  Please, try again with a different name." )
+                // Check if project name is already in use
+                const nameInUse = this.list.map((project) => project.name) // Get all project names
+                if(nameInUse.includes(data.name))   {
+                    toggleModal("alert-modal", true)
+                    alertMessage.innerHTML = "There is already a project with that name!  Please, try again with a different name.";
+                }
 
-        const project = new Project(data)
+                const project = new Project(data)
 
-        // Add event listener to project ui
-        project.ui?.addEventListener('click', () => {
-            this.setDetailsPage(project)
-            const projectsPage = document.getElementById("projects-page") as HTMLDivElement
-            const detailsPage = document.getElementById("project-details") as HTMLDivElement
-            if(!(projectsPage && detailsPage)) return console.warn("Pages not found")
-            projectsPage.style.display = "none"
-            detailsPage.style.display = "flex"
-        })
-        if (project.ui) {
-            this.ui.append(project.ui);
-        }
-        this.list.push(project)
-        this.getTotalCost()
-        console.log("New project created", this);
-        console.log("Projects list: ", this.list)
-        return project;
+                // Add event listener to project ui
+                project.ui?.addEventListener('click', () => {
+                    this.setDetailsPage(project)
+                    const projectsPage = document.getElementById("projects-page") as HTMLDivElement
+                    const detailsPage = document.getElementById("project-details") as HTMLDivElement
+                    if(!(projectsPage && detailsPage)) return console.warn("Pages not found")
+                    projectsPage.style.display = "none"
+                    detailsPage.style.display = "flex"
+                })
+                if (project.ui) {
+                    this.ui.append(project.ui);
+                }
+                this.list.push(project)
+                this.getTotalCost()
+                console.log("New project created", this);
+                console.log("Projects list: ", this.list)
+                return project;
+            }
     }
 
     editProject(updatedProject: Project) {
