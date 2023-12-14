@@ -79,6 +79,8 @@ if (projectForm) {
 
         // Create new project and add to manager
         const projectData: IProject = {
+            id: null,
+            iconColor: null,
             name: formData.get("name") as string,
             description: formData.get("description") as string,
             status: formData.get("status") as ProjectStatus,
@@ -87,7 +89,7 @@ if (projectForm) {
         }
 
         try {
-            projectsManager.newProject( projectData);
+            projectsManager.newProject(projectData);
             // Reset form and close modal
             projectForm.reset();
             toggleModal("new-project-modal", false);
@@ -156,7 +158,8 @@ function updateEditForm(id: string | null) {
 if (editProjectForm) {
     editProjectForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const selectedProject = projectsManager.getSelectedProject();
+        const selectedProjectId = projectsManager.getSelectedProject();
+        const selectedProject = projectsManager.getProjectById(selectedProjectId? selectedProjectId : "");
 
         // Get form data and finish date
         const formData = new FormData(editProjectForm);
@@ -178,7 +181,9 @@ if (editProjectForm) {
         }
 
         const projectData: IProject = {
+            id: null,
             name: formData.get("name") as string,
+            iconColor: null,
             description: formData.get("description") as string,
             status: formData.get("status") as ProjectStatus,
             userRole: formData.get("userRole") as UserRole,
@@ -186,10 +191,14 @@ if (editProjectForm) {
         }
         // Create project data and add to manager
         const updatedProject = new Project(projectData)
-        if (selectedProject) updatedProject.id = selectedProject;
+        if (selectedProjectId) {
+            updatedProject.id = selectedProjectId;
+            updatedProject.todosList = selectedProject?.todosList? selectedProject.todosList : [];
+        }
         
         try {
             projectsManager.editProject(updatedProject);
+            console.log("Updated project: ", updatedProject);
             // Reset form and close modal
             editProjectForm.reset();
             toggleModal("edit-project-modal", false);

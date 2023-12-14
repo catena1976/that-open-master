@@ -5,6 +5,8 @@ export type ProjectStatus = "pending" | "active" | "finished";
 export type UserRole = "architect" | "engineer" | "developer";
 
 export interface IProject {
+    id: string | null;
+    iconColor: string | null;
     name: string;
     description: string;
     status: ProjectStatus;
@@ -15,6 +17,8 @@ export interface IProject {
 export class Project implements IProject {
 
     // Properties to satisfy the interface
+    id: string = "";
+    iconColor: string = "";
     name: string;
     description: string;
     status: ProjectStatus;
@@ -25,11 +29,9 @@ export class Project implements IProject {
     ui: HTMLDivElement | null = null;
     cost: number = 0;
     progress: number = 0.5;
-    id: string = "";
     todosList: Todo[] = [];
-    iconColor: string = "";
 
-    constructor(data: Project) {
+    constructor(data: IProject) {
 
         // Project data definition
         for (const key in data) {

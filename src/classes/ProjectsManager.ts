@@ -13,13 +13,12 @@ export class ProjectsManager {
         this.ui = container
         const project = this.newProject({
             name: "Default Project",
+            id: "default-project-id",
+            iconColor: "#686868",
             description: "This is just a default app project",
             status: "active",
             userRole: "architect",
-            finishDate: new Date(),
-            id: "default-project-id",
-            cost: 1000,
-            progress: 0.5
+            finishDate: new Date()
         })
 
         project.addTodo(new Todo({
@@ -78,13 +77,16 @@ export class ProjectsManager {
         return todo
     }
 
-    newProject(data: Project) {
+    newProject(data: IProject) {
 
         // Check if name lenght is greater than 5
         if(data.name.length < 5 ) throw new Error("Project name must be at least 5 characters long")
 
         // Check if project with the same id already exists
         const existingProjectIndex = this.list.findIndex((project) => project.id === data.id);
+        if (existingProjectIndex !== -1) {
+            this.editProject(new Project(data))
+        }
 
         // Check if project name is already in use
         const nameInUse = this.list.map((project) => project.name) // Get all project names
@@ -109,6 +111,49 @@ export class ProjectsManager {
         console.log("New project created", this);
         console.log("Projects list: ", this.list)
         return project;
+    }
+
+    editProject(updatedProject: Project) {
+        const projectIndex = this.list.findIndex((updatedProject) => {
+            return updatedProject.id === this.selectedProjectId;
+        });
+    
+        if (projectIndex !== -1) {
+            // Update the existing project
+            this.list[projectIndex].name = updatedProject.name;
+            this.list[projectIndex].description = updatedProject.description;
+            this.list[projectIndex].status = updatedProject.status;
+            this.list[projectIndex].userRole = updatedProject.userRole;
+            this.list[projectIndex].finishDate = updatedProject.finishDate;
+            this.list[projectIndex].cost = updatedProject.cost;
+            this.list[projectIndex].progress = updatedProject.progress;
+
+            // updatet ui
+            this.list[projectIndex].setUI();
+
+            // Add event listener to project ui
+            this.list[projectIndex].ui?.addEventListener('click', () => {
+                this.setDetailsPage(updatedProject)
+                const projectsPage = document.getElementById("projects-page") as HTMLDivElement
+                const detailsPage = document.getElementById("project-details") as HTMLDivElement
+                if(!(projectsPage && detailsPage)) return console.warn("Pages not found")
+                projectsPage.style.display = "none"
+                detailsPage.style.display = "flex"
+            })
+            this.ui.innerHTML = "";
+            for (const project of this.list) {
+                if (project.ui) {
+                    this.ui.append(project.ui);
+                }
+            }
+
+            this.setDetailsPage(updatedProject);
+  
+        } else {
+            console.error(`Project with id ${updatedProject.id} not found.`);
+        }
+        console.log("Project edited: ", updatedProject)
+        console.log("Projects list: ", this.list)
     }
 
     private setDetailsPage(project: Project) {
@@ -144,6 +189,7 @@ export class ProjectsManager {
     }
 
     private setTodosList(project: Project) {
+        console.log("setTodosList > Project: ", project)
         const todosList = document.getElementById("todos-list") as HTMLDivElement
         if(!todosList) return console.warn("List not found")
         todosList.innerHTML = ""
@@ -253,51 +299,6 @@ export class ProjectsManager {
         } else {
             console.error(`Project with id ${updatedTodo.projectId} not found.`);
         }
-    }
-
-
-
-    editProject(updatedProject: Project) {
-        const projectIndex = this.list.findIndex((project) => {
-            return project.id === this.selectedProjectId;
-        });
-    
-        if (projectIndex !== -1) {
-            // Update the existing project
-            this.list[projectIndex].name = updatedProject.name;
-            this.list[projectIndex].description = updatedProject.description;
-            this.list[projectIndex].status = updatedProject.status;
-            this.list[projectIndex].userRole = updatedProject.userRole;
-            this.list[projectIndex].finishDate = updatedProject.finishDate;
-            this.list[projectIndex].cost = updatedProject.cost;
-            this.list[projectIndex].progress = updatedProject.progress;
-
-            // updatet ui
-            this.list[projectIndex].setUI();
-
-            // Add event listener to project ui
-            this.list[projectIndex].ui?.addEventListener('click', () => {
-                this.setDetailsPage(updatedProject)
-                const projectsPage = document.getElementById("projects-page") as HTMLDivElement
-                const detailsPage = document.getElementById("project-details") as HTMLDivElement
-                if(!(projectsPage && detailsPage)) return console.warn("Pages not found")
-                projectsPage.style.display = "none"
-                detailsPage.style.display = "flex"
-            })
-            this.ui.innerHTML = "";
-            for (const project of this.list) {
-                if (project.ui) {
-                    this.ui.append(project.ui);
-                }
-            }
-
-            this.setDetailsPage(updatedProject);
-  
-        } else {
-            console.error(`Project with id ${updatedProject.id} not found.`);
-        }
-        console.log("Project edited: ", updatedProject)
-        console.log("Projects list: ", this.list)
     }
 
     deleteProject(id: string) {
