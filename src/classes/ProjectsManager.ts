@@ -34,7 +34,7 @@ export class ProjectsManager {
             finishDate: new Date()
         })
 
-        project.addTodo(new Todo({
+        project?.addTodo(new Todo({
             projectId: project.id,
             title: "Default Todo",
             description: "This is just a default todo",
@@ -43,7 +43,7 @@ export class ProjectsManager {
         }))
 
         this.setTodosList(project)
-        project?.ui?.click()
+        // project?.ui?.click()
     }
 
     getSelectedProject(): string | null {
@@ -206,36 +206,38 @@ export class ProjectsManager {
         this.setTodosList(project)
     }
 
-    private setTodosList(project: Project) {
+    private setTodosList(project?: Project) {
         console.log("setTodosList > Project: ", project)
         const todosList = document.getElementById("todos-list") as HTMLDivElement
         if(!todosList) return console.warn("List not found")
         todosList.innerHTML = ""
-        for (const todo of project.todosList) {
-            const todoItem = document.createElement("div")
-            todoItem.className = "todo-item"
+        if (project) {
+            for (const todo of project.todosList) {
+                const todoItem = document.createElement("div")
+                todoItem.className = "todo-item"
 
-            let dateObj = new Date(todo.finishDate)
-            let formattedDate = dateObj.toDateString()
+                let dateObj = new Date(todo.finishDate)
+                let formattedDate = dateObj.toDateString()
 
-            let completedIcon = todo.completed ? 'check_box' : 'check_box_outline_blank';
-            todo.completed? todoItem.style.backgroundColor = 'lightgreen' : todoItem.style.backgroundColor = 'coral'; 
+                let completedIcon = todo.completed ? 'check_box' : 'check_box_outline_blank';
+                todo.completed? todoItem.style.backgroundColor = 'lightgreen' : todoItem.style.backgroundColor = 'coral'; 
 
-            todoItem.innerHTML = `
-                <div style="display: flex; column-gap: 25; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; column-gap: 25px; align-items: center;">
-                        <span class="material-symbols-rounded" style="padding: 10px; background-color: #686868; border-radius: 10px;">construction</span>
-                        <p >${todo.title}</p>
+                todoItem.innerHTML = `
+                    <div style="display: flex; column-gap: 25; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; column-gap: 25px; align-items: center;">
+                            <span class="material-symbols-rounded" style="padding: 10px; background-color: #686868; border-radius: 10px;">construction</span>
+                            <p >${todo.title}</p>
+                        </div>
+                        <p style="white-space: nowrap; margin-left: 10px;">${formattedDate}</p>
+                        <div class="material-symbols-rounded" style="padding: 15px;">${completedIcon}</div>
+                        <!-- <div class="material-symbols-rounded" style="padding: 10px; background-color: #686868; border-radius: 10px;">check_box</div> -->
                     </div>
-                    <p style="white-space: nowrap; margin-left: 10px;">${formattedDate}</p>
-                    <div class="material-symbols-rounded" style="padding: 15px;">${completedIcon}</div>
-                    <!-- <div class="material-symbols-rounded" style="padding: 10px; background-color: #686868; border-radius: 10px;">check_box</div> -->
-                </div>
-            `
+                `
 
-            // add event listener to todo item
-            todoItem.addEventListener('click', () => this.setTodoDetailsPage(todo))
-            todosList.append(todoItem)
+                // add event listener to todo item
+                todoItem.addEventListener('click', () => this.setTodoDetailsPage(todo))
+                todosList.append(todoItem)
+            }
         }
     }
 

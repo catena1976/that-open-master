@@ -197,11 +197,16 @@ if (editProjectForm) {
         }
         
         try {
+            const detailsPage = document.getElementById("project-details") as HTMLDivElement
+            const projectsPage = document.getElementById("projects-page") as HTMLDivElement
             projectsManager.editProject(updatedProject);
             console.log("Updated project: ", updatedProject);
             // Reset form and close modal
             editProjectForm.reset();
             toggleModal("edit-project-modal", false);
+            if(!(projectsPage && detailsPage)) return console.warn("Pages not found")
+            projectsPage.style.display = "none"
+            detailsPage.style.display = "flex"
         } catch (err) {
             toggleModal("alert-modal", true)
             alertMessage.innerHTML = err.message;
