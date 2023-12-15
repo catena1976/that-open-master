@@ -43,7 +43,7 @@ export class ProjectsManager {
         }))
 
         this.setTodosList(project)
-        // project.ui.click()
+        project?.ui?.click()
     }
 
     getSelectedProject(): string | null {
@@ -106,6 +106,7 @@ export class ProjectsManager {
                 if(nameInUse.includes(data.name))   {
                     toggleModal("alert-modal", true)
                     alertMessage.innerHTML = "There is already a project with that name!  Please, try again with a different name.";
+                    return;
                 }
 
                 const project = new Project(data)
