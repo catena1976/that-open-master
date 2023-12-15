@@ -43,7 +43,7 @@ export class ProjectsManager {
         }))
 
         this.setTodosList(project)
-        // project?.ui?.click()
+        project?.ui?.click()
     }
 
     getSelectedProject(): string | null {

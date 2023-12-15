@@ -1,4 +1,9 @@
 // Import necessary classes and types
+import * as THREE from "three"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
+import { OBJLoader} from "three/examples/jsm/loaders/OBJLoader"
+import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader"
+import { GUI} from "three/examples/jsm/libs/lil-gui.module.min"
 import { Project, IProject, ProjectStatus, UserRole } from "./classes/Project.ts";
 import { Todo, ITodo } from "./classes/Todo.ts";
 import { ProjectsManager } from "./classes/ProjectsManager.ts";
@@ -395,4 +400,96 @@ if (editTodoForm) {
         }
     });
 }
+
+// ThreeJS simple viewer
+const scene = new THREE.Scene();
+
+const viewerContainer = document.getElementById("viewer-container") as HTMLElement;
+
+const containerDimensions = viewerContainer.getBoundingClientRect();
+const aspectRatio = containerDimensions.width / containerDimensions.height;
+const camera = new THREE.PerspectiveCamera(75, aspectRatio);
+camera.position.z = 5;
+
+const renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+viewerContainer.appendChild(renderer.domElement);
+
+function resizeViewer(){
+    const containerDimensions = viewerContainer.getBoundingClientRect();
+    renderer.setSize(containerDimensions.width, containerDimensions.height);
+    const aspectRatio = containerDimensions.width / containerDimensions.height;
+    camera.aspect = aspectRatio;
+    camera.updateProjectionMatrix();
+}
+
+window.addEventListener("resize", resizeViewer);
+
+resizeViewer();
+
+const boxGeonetry = new THREE.BoxGeometry();
+const material = new THREE.MeshStandardMaterial();
+const cube = new THREE.Mesh(boxGeonetry, material);
+
+const directionalLight = new THREE.DirectionalLight();
+// directionalLight.intensity = 10;
+const ambientLight = new THREE.AmbientLight();
+ambientLight.intensity = 0.4;
+
+scene.add(directionalLight, ambientLight);
+
+const cameraControls = new OrbitControls(camera, viewerContainer);
+
+function renderScene() {
+    renderer.render(scene, camera);
+    requestAnimationFrame(renderScene);
+}
+
+renderScene();
+
+// World helpers
+const axes = new THREE.AxesHelper();
+const grid = new THREE.GridHelper();
+grid.material.transparent = true;
+grid.material.opacity = 0.4;
+grid.material.color = new THREE.Color("#808080");
+
+const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight);
+
+scene.add(axes, grid, directionalLightHelper);
+
+// GUI
+const gui = new GUI();
+const cubeControls = gui.addFolder("Cube");
+
+cubeControls.add(cube.position, "x", -10, 10, 0.1);
+cubeControls.add(cube.position, "y", -10, 10, 0.1);
+cubeControls.add(cube.position, "z", -10, 10, 0.1);
+
+cubeControls.add(cube, "visible");
+cubeControls.addColor(cube.material, "color");
+
+const lightControls = gui.addFolder("Light");
+
+lightControls.add(directionalLight, "visible");
+lightControls.add(directionalLight, "intensity", 0, 10, 0.1);
+lightControls.add(directionalLight.position, "x", -10, 10, 0.1);
+lightControls.add(directionalLight.position, "y", -10, 10, 0.1);
+lightControls.add(directionalLight.position, "z", -10, 10, 0.1);
+lightControls.addColor(directionalLight, "color");
+lightControls.add(directionalLight.rotation, "x", -10, 10, 0.1);
+lightControls.add(directionalLight.rotation, "z", -10, 10, 0.1);
+
+const objLoader = new OBJLoader();
+const mtlLoader = new MTLLoader();
+
+mtlLoader.load("../assets/Gear/Gear1.mtl", (materials) => {
+    console.log("MTL loaded: ", materials);
+    materials.preload();
+    objLoader.setMaterials(materials);
+});
+
+objLoader.load("../assets/Gear/Gear1.obj", (mesh) => {
+    console.log("OBJ loaded: ", mesh);
+    scene.add(mesh);
+});
 
