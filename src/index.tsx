@@ -1,4 +1,7 @@
 // Import necessary classes and types
+import * as React from "react"
+import * as ReactDOM from "react-dom/client"
+import { Sidebar } from "./react-components/Sidebar"
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { OBJLoader} from "three/examples/jsm/loaders/OBJLoader"
@@ -7,6 +10,12 @@ import { GUI} from "three/examples/jsm/libs/lil-gui.module.min"
 import { Project, IProject, ProjectStatus, UserRole } from "./classes/Project.ts";
 import { Todo, ITodo } from "./classes/Todo.ts";
 import { ProjectsManager } from "./classes/ProjectsManager.ts";
+
+const rootElement = document.getElementById("app") as HTMLDivElement
+const appRoot = ReactDOM.createRoot(rootElement)
+appRoot.render(
+    <Sidebar />
+)
 
 // Function to toggle modal visibility
 function toggleModal(id: string, show: boolean) {
