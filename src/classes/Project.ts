@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { Todo } from './Todo';
+import { Todo, ITodo } from './Todo';
 
 export type ProjectStatus = "pending" | "active" | "finished";
 export type UserRole = "architect" | "engineer" | "developer";
@@ -26,25 +26,29 @@ export class Project implements IProject {
     finishDate: Date;
 
     // Class properties
-    ui: HTMLDivElement | null = null;
     cost: number = 0;
     progress: number = 0.5;
     todosList: Todo[] = [];
 
-    constructor(data: IProject) {
+    private selectedTodo: Todo | null = null
+
+    onTodoAdded = (todo: Todo) => { }
+    onTodoDeleted = (id: string) => { }
+    onTodoUpdated = (todo: Todo) => { }
+
+    constructor(data: IProject, id = uuidv4()) {
 
         // Project data definition
         for (const key in data) {
             this[key] = data[key]
         }
     
-        (!data.id)? this.id = uuidv4() : this.id = data.id;
+        this.id = data.id || id || uuidv4();
         this.iconColor = data.iconColor || this.generateRandomColor();
 
         // Create UI
         this.getProjectInitials()
         // this.generateRandomColor()
-        this.setUI()
     };
 
     // Method to generate a random color
@@ -63,52 +67,62 @@ export class Project implements IProject {
         return this.name.split(' ').slice(0,2).map(word => word[0]).join('');
     }
 
+    selectTodo(todo: Todo): void {
+        this.selectedTodo = todo;
+        // console.log("Selected todo: ", this.selectedTodoId);
+    }
+
+    getSelectedTodo(): Todo | null {
+        return this.selectedTodo
+    }
+
     // Method to add a todo to the project
-    addTodo(todo: Todo) {
-        this.todosList.push(todo);
-        console.log("Todo added: ", todo);
-        console.log("Todos list: ", this.todosList);
+    addTodo(data: ITodo, id?: string) {
+        // check if title length is greater than 5
+        if (!data.title || data.title.length < 5) {
+            throw new Error("Todo name must be at least 5 characters long");
+        }
+
+        // check if todo with the same title already exists
+        const existingTodoIndex = this.todosList.findIndex((todo) => todo.id === data.id)
+        if (existingTodoIndex !== -1) {
+            this.editTodo(new Todo(data));
+        } else {
+
+            const todo = new Todo(data, id);
+
+            this.todosList.push(todo);
+            this.selectTodo(todo)
+            console.log("Todo added: ", todo);
+            this.onTodoAdded(todo);
+            console.log("Todos list: ", this.todosList);
+            return todo;
+        }
+    }
+
+    // Method to edit a todo
+    editTodo(updatedTodo: Todo) {
+        const todoIndex = this.todosList.findIndex((updatedTodo) => {
+            return updatedTodo.id === this.selectedTodo?.id;
+          });
+        if (todoIndex !== -1) {
+            // update the todo
+            this.todosList[todoIndex].title = updatedTodo.title;
+            this.todosList[todoIndex].description = updatedTodo.description;
+            this.todosList[todoIndex].finishDate = updatedTodo.finishDate;
+            this.todosList[todoIndex].completed = updatedTodo.completed;
+
+            this.selectTodo(updatedTodo)
+            this.onTodoUpdated(updatedTodo);
+        } else {
+            throw new Error("Todo not found");
+        }
+        console.log("Todo updated: ", updatedTodo);
+        console.log("Todos list updated: ", this.todosList);
     }
 
     // Get a todo by its id
     getTodoById(id: string) {
         return this.todosList.find(todo => todo.id === id);
-    }
-
-    // creates the UI for the project
-    setUI() {
-        // Project data UI
-        if (this.ui && Object.keys(this.ui).length !== 0) return console.warn("UI already set");
-        this.ui = document.createElement("div")
-        this.ui.className = "project-card"
-        const initials = this.getProjectInitials()
-        const color = this.iconColor
-        this.ui.innerHTML = `
-        <div class="card-header">
-            <p style="background-color: ${color}; padding: 10px; border-radius: 8px; aspect-ratio: 1; text-transform: uppercase;">${initials}</p>
-            <div>
-                <h5>${this.name}</h5>
-                <p>${this.description}</p>
-            </div>
-        </div>
-        <div class="card-content">
-            <div class="card-property">
-                <p style="color: #969696;">Status</p>
-                <p>${this.status}</p>
-            </div>
-            <div class="card-property">
-                <p style="color: #969696;">Role</p>
-                <p>${this.userRole}</p>
-            </div>
-            <div class="card-property">
-                <p style="color: #969696;">Cost</p>
-                <p>$${this.cost}</p>
-            </div>
-            <div class="card-property">
-                <p style="color: #969696;">Estimated Progress</p>
-                <p>${this.progress * 100}%</p>
-            </div>
-        </div>
-        `
     }
 };

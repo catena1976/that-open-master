@@ -123,6 +123,11 @@
   #nav-buttons li:hover {
     background-color: var(--primary);
   }
+
+  #nav-buttons a{
+    color: white;
+    text-decoration: none;
+  }
   
   /* Content styles */
   
@@ -138,6 +143,11 @@
     padding: 20px 40px;
     gap: 30px;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+
+  #projects-list a{
+    color: white;
+    text-decoration: none;
   }
 
   .action-icon {

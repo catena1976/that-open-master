@@ -1,31 +1,31 @@
 import { v4 as uuidv4 } from 'uuid'
 
 export interface ITodo {
-    projectId: string;
-    title: string;
-    description: string;
-    finishDate: Date;
-    completed: boolean;
+
+    id: string | null;
+    projectId: string | null;
+    title: string | null;
+    description: string | null;
+    finishDate: Date | null;
+    completed: boolean | null;
 }
 
 export class Todo implements ITodo {
 
     // Properties to satisfy the interface
+    id: string;
     projectId: string;
     title: string;
     description: string;
     finishDate: Date;
     completed: boolean;
 
-    // Class properties
-    id: string;
-
-    constructor( data: ITodo ) {
+    constructor( data: ITodo, id = uuidv4()) {
         // Todo data definition
         for (const key in data) {
             this[key] = data[key]
         }
 
-        this.id = uuidv4()
+        this.id = data.id || id || uuidv4();
 }
 }
