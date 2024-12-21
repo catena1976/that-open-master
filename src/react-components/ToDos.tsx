@@ -7,6 +7,7 @@ import { TodoEditModal } from './TodoEditModal';
 import { TodoNewModal } from './TodoNewModal';
 import * as Firestore from 'firebase/firestore'
 import { getCollection, deleteDocument, getDocument } from "../firebase/index";
+import { SearchBoxToDo } from "./SearchBoxToDo";
 
 interface Props {
     project: Project,
@@ -16,9 +17,7 @@ interface Props {
 const todosCollection = getCollection<ITodo>("/todos") as Firestore.CollectionReference<ITodo>
 
 export function ToDos(props: Props) {
-
     const [todos, setTodos] = useState<Todo[]>(props.project.todosList);
-
     const [selectedTodo, setSelectedTodo] = useState<Todo | null>(props.project.getSelectedTodo());
     console.log("Selected Todo:", selectedTodo);
 
@@ -26,10 +25,35 @@ export function ToDos(props: Props) {
     const [isModalTodoEditOpen, setIsModalToDoEditOpen] = useState(false);
     const [isModalToDoNewOpen, setIsModalToDoNewOpen] = useState(false);
 
-    // Update the todos list when a todo is added, deleted or updated
-    props.project.onTodoAdded = () => { setTodos([...props.project.todosList]) };
-    props.project.onTodoDeleted = () => { setTodos([...props.project.todosList]) };
-    props.project.onTodoUpdated = () => { setTodos([...props.project.todosList]) };
+    // Set the onTodoAdded handler
+    useEffect(() => {
+        props.project.onTodoAdded = () => {
+        setTodos([...props.project.todosList]);
+
+        // Asing the onTodoDeleted handler
+        props.project.onTodoDeleted = async (id: string) => {
+            // Delete the todo from Firestore
+            await deleteDocument("/todos", id)
+        // Update the state
+        setTodos([...props.project.todosList])
+        }
+
+        setSelectedTodo(props.project.getSelectedTodo());
+        };
+    // If you have onTodoDeleted and onTodoUpdated, set them here as well
+     }, [props.project, props.project.getSelectedTodo()]);
+
+    // Fetch todos for the project from Firestore when the component mounts
+    useEffect(() => {
+        const fetchTodos = async () => {
+        // Optionally clear existing todosList
+        props.project.todosList = [];
+          await getFirestoreTodos(props.project.id);
+          // Update the todos state after fetching
+          setTodos([...props.project.todosList]);
+        };
+        fetchTodos();
+      }, [props.project.id]);
 
     // Get docs from the todos collection matching the project ID
     const getFirestoreTodos = async (projectId: string): Promise<Todo[]> => {
@@ -40,7 +64,8 @@ export function ToDos(props: Props) {
             // Create a todo object with the correct finsihDate type
             const todo: ITodo = {
                 ...data,
-                finishDate: (data.finishDate as unknown as Firestore.Timestamp).toDate()
+                finishDate: (data.finishDate as unknown as Firestore.Timestamp).toDate(),
+                id: doc.id
             }
             try {
                 // Add the todo to the project
@@ -54,11 +79,6 @@ export function ToDos(props: Props) {
         return todos;
     }
 
-    // Fetch todos for the project from Firestore when the component mounts
-    useEffect(() => {
-        getFirestoreTodos(props.project.id);
-    }, [])
-
     const handleOnClickDetails = (selectedTodo: Todo | null): void => {
         if (selectedTodo) {
             props.project.selectTodo(selectedTodo);
@@ -67,7 +87,7 @@ export function ToDos(props: Props) {
         setIsModalTodoDetailsOpen(true);
     }
 
-    const handelOnEditTodoClick = (selectedTodo: Todo | null): void => {
+    const handleOnEditTodoClick = (selectedTodo: Todo | null): void => {
         if (selectedTodo) {
             props.project.selectTodo(selectedTodo);
             setSelectedTodo(selectedTodo);
@@ -147,20 +167,41 @@ export function ToDos(props: Props) {
             }
         }
     }
+    
+    // Handle form submission for deleting a todo
+    const handleOnTodoDeletion = async (todo: Todo) => {
+        console.log('handleOnTodoDeletion called in ToDos.tsx');
+        console.log('Deleting todo: ', todo);
+        // Delete the todo from the project
+        props.project.deleteTodo(todo.id)
+        // Update the state
+        setTodos([...props.project.todosList])
 
+        // Close any open modals if necessary
+        setIsModalTodoDetailsOpen(false);
+        setIsModalToDoEditOpen(false);
+    }
+    
     // Handle form submission for updating a todo
     const handleOnTodoUpdated = (updatedTodo: Todo) => {
         // Update the todo in the project
         props.project.addTodo(updatedTodo)
-        // Update the state
-        setTodos([...props.project.todosList])
     }
 
+    // Filter projects based on search input
+    const handleOnToDotSearch = (value: string) => {
+        setTodos(props.project.filterTodos(value))
+    }
     return (
         <>
             {/* Todo Details Modal */}
             {isModalTodoDetailsOpen && selectedTodo && (
-                <TodoDetailsModal todo={selectedTodo} handleOnCloseDetailsModal={() => handleOnCloseDetailsModal()} handelOnEditTodoClick={handelOnEditTodoClick} />
+                <TodoDetailsModal 
+                    todo={selectedTodo} 
+                    handleOnCloseDetailsModal={() => handleOnCloseDetailsModal()} 
+                    handleOnEditTodoClick={handleOnEditTodoClick} 
+                    handleOnTodoDeletion={handleOnTodoDeletion}
+                />
             )}
             {/* Modal for edit a To-Do item */}
             {isModalTodoEditOpen && selectedTodo && (
@@ -168,6 +209,7 @@ export function ToDos(props: Props) {
                     todo={selectedTodo} 
                     handleOnCloseEditToDoModal={() => handleOnCloseEditToDoModal()} 
                     onTodoUpdated={handleOnTodoUpdated}
+                    handleOnTodoDeletion={handleOnTodoDeletion}
                 />
             )}
             {/* Modal for edit a To-Do item */}
@@ -193,6 +235,7 @@ export function ToDos(props: Props) {
                         }}
                     >
                         {/* Search box for To-Do items */}
+                        {/* <SearchBoxToDo handleOnToDotSearch={(value) => handleOnToDotSearch(value)} /> */}
                         <div style={{ display: "flex", alignItems: "center", columnGap: 10 }}>
                             <span className="material-symbols-rounded">search</span>
                             <input
@@ -208,7 +251,7 @@ export function ToDos(props: Props) {
                     </div>
                 </div>
                 {/* List of To-Do items */}
-                <ToDosList project={props.project} todos={todos} handleOnClickDetails={handleOnClickDetails} />
+                <ToDosList project={props.project} todos={todos} selectedTodo={selectedTodo} handleOnClickDetails={handleOnClickDetails} />
             </div>
         </>
     )

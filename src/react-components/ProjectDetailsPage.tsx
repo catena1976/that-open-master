@@ -18,9 +18,12 @@ export function ProjectDetailsPage(props: Props) {
   const { projectsManager } = props;
 
   // Get the project ID from the route parameters
-  const routeParams = useParams<{ id: string }>();
-
-  const navigateTo = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  console.log("Project ID from route params:", id);
+  // If no project ID is provided, display an alert
+  if (!id) {
+    return <AlertModal message="Project ID is needed to see this page" onClose={() => setAlertMessage(null)} />;
+  }
 
   // State to store the project data
   const [project, setProject] = useState<Project | null>(null);
@@ -32,33 +35,85 @@ export function ProjectDetailsPage(props: Props) {
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   // Fetch the project data when the component mounts or when the ID changes
+  // useEffect(() => {
+  //   const loadProject = async () => {
+  //     if (!id) {
+  //       setAlertMessage("Project ID is needed to see this page.");
+  //       return;
+  //     }
+  //     // Check if the project is already in ProjectsManager
+  //     let proj = projectsManager.getProjectById(id);
+  //     console.log("Project from ProjectsManager:", proj);
+
+  //     // If not found, attempt to fetch it from Firestore
+  //     if (!proj) {
+  //       // Fetch project from Firestore if not in ProjectsManager
+  //       try {
+  //         console.log("Loading project from Firestore:", id);
+  //         const projectData = await getDocument<Project>("/projects", id);
+  //         if (!projectData) {
+  //           setAlertMessage(`The project with ID ${id} wasn't found.`);
+  //           return;
+  //         }
+  //         // Add this new project to ProjectsManager          
+  //         proj = projectsManager.newProject({ ...projectData });
+  //       } catch (error) {
+  //         console.error("Error loading project:", error);
+  //         setAlertMessage("Error loading project data.");
+  //       }
+  //     }
+  //     setProject(proj || null);
+  //   };
+
+  //   loadProject();
+  // }, [id, projectsManager]);
+
   useEffect(() => {
-    if (routeParams.id) {
-      const proj = projectsManager.getProjectById(routeParams.id);
-      if (proj && proj instanceof Project) {
-        setProject(proj);
-      } else {
-        setProject(null);
+    const loadProject = async () => {
+      if (!id) {
+        setAlertMessage("Project ID is needed to see this page.");
+        return;
+      }
+
+      // Fetch project from Firestore
+      try {
+        console.log("Loading project from Firestore:", id);
+        const projectData = await getDocument<Project>("/projects", id);
+        if (!projectData) {
+          setAlertMessage(`The project with ID ${id} wasn't found.`);
+          return;
+        }
+        // Add this new project to ProjectsManager          
+        const project = projectsManager.newProject({ ...projectData });
+      } catch (error) {
+        console.error("Error loading project:", error);
+        setAlertMessage("Error loading project data.");
       }
     }
-  }, [routeParams.id, projectsManager]);
+    setProject(project || null);
+
+    loadProject();
+  }, [id, projectsManager]);
+
+  const navigateTo = useNavigate();
 
   // Assign the onProjectDeleted event handler
   useEffect(() => {
-    projectsManager.onProjectDeleted = async (id) => {
+    projectsManager.onProjectDeleted = async (id: string) => {
       // Delete the project from Firestore
       await deleteDocument("/projects", id);
+      // Navigate back to home
+      navigateTo("/");
     };
-  }, [projectsManager]);
-
-  // If no project ID is provided, display an alert
-  if (!routeParams.id) {
-    return <AlertModal message="Project ID is needed to see this page" onClose={() => setAlertMessage(null)} />;
-  }
+  }, [projectsManager, navigateTo]);
 
   // If the project is not found, display an alert
   if (!project) {
-    return <AlertModal message={`The project with ID ${routeParams.id} wasn't found`} onClose={() => setAlertMessage(null)} />;
+    return <AlertModal message={`The project with ID ${id} wasn't found`} onClose={() => setAlertMessage(null)} />;
+  }
+
+  if (!project) {
+    return <div>Loading...</div>;
   }
 
   // Function to handle project deletion

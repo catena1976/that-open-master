@@ -5,20 +5,19 @@ export type ProjectStatus = "pending" | "active" | "finished";
 export type UserRole = "architect" | "engineer" | "developer";
 
 export interface IProject {
-    id: string | null;
-    iconColor: string | null;
+    // iconColor: string | null;
     name: string;
     description: string;
     status: ProjectStatus;
     userRole: UserRole;
     finishDate: Date;
+    // id?: string;
 }
 
 export class Project implements IProject {
 
     // Properties to satisfy the interface
-    id: string = "";
-    iconColor: string = "";
+    // iconColor: string;
     name: string;
     description: string;
     status: ProjectStatus;
@@ -26,6 +25,7 @@ export class Project implements IProject {
     finishDate: Date;
 
     // Class properties
+    id: string
     cost: number = 0;
     progress: number = 0.5;
     todosList: Todo[] = [];
@@ -36,44 +36,57 @@ export class Project implements IProject {
     onTodoDeleted = (id: string) => { }
     onTodoUpdated = (todo: Todo) => { }
 
-    constructor(data: IProject, id = uuidv4()) {
-
-        // Project data definition
+    constructor(data: IProject, id?: string) {
+        // Assign data properties first
         for (const key in data) {
-            this[key] = data[key]
+          this[key] = data[key];
+          console.log("key:", key);
         }
-    
-        this.id = data.id || id || uuidv4();
-        this.iconColor = data.iconColor || this.generateRandomColor();
-
-        // Create UI
-        this.getProjectInitials()
-        // this.generateRandomColor()
-    };
+      
+        console.log("id from Firestore param:", id);
+        console.log("data.id from Firestore:", data.id);
+      
+        // Use id (doc.id) if available, otherwise data.id, otherwise uuidv4
+        this.id = data.id;
+      
+        console.log("final project id:", this.id);
+      
+        // Fallback for iconColor
+        // this.iconColor = data.iconColor || this.generateRandomColor();
+      
+        // this.getProjectInitials();
+      }
 
     // Method to generate a random color
-    generateRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-        }
-        this.iconColor = color;
-        return color;
-    }
+    // generateRandomColor() {
+    //     const letters = '0123456789ABCDEF';
+    //     let color = '#';
+    //     for (let i = 0; i < 6; i++) {
+    //         color += letters[Math.floor(Math.random() * 16)];
+    //     }
+    //     this.iconColor = color;
+    //     return color;
+    // }
 
     // Method to get the initials of the project name
-    getProjectInitials() {
-        return this.name.split(' ').slice(0,2).map(word => word[0]).join('');
-    }
+    // getProjectInitials() {
+    //     return this.name.split(' ').slice(0,2).map(word => word[0]).join('');
+    // }
 
-    selectTodo(todo: Todo): void {
+    selectTodo(todo: Todo | null): void {
         this.selectedTodo = todo;
         // console.log("Selected todo: ", this.selectedTodoId);
     }
 
     getSelectedTodo(): Todo | null {
         return this.selectedTodo
+    }
+
+    filterTodos(value: string) {
+        const filteredTodos = this.todosList.filter((todo) => {
+            return todo.title.includes(value)
+        })
+        return filteredTodos
     }
 
     // Method to add a todo to the project
@@ -94,7 +107,9 @@ export class Project implements IProject {
             this.todosList.push(todo);
             this.selectTodo(todo)
             console.log("Todo added: ", todo);
-            this.onTodoAdded(todo);
+            if (this.onTodoAdded) {
+                this.onTodoAdded(todo);
+              }
             console.log("Todos list: ", this.todosList);
             return todo;
         }
@@ -124,5 +139,21 @@ export class Project implements IProject {
     // Get a todo by its id
     getTodoById(id: string) {
         return this.todosList.find(todo => todo.id === id);
+    }
+
+    // Method to delete a todo
+    deleteTodo(id: string) {
+        console.log('Attempting to delete todo with id:', id);
+        console.log('Current todosList:', this.todosList);
+        const todo = this.getTodoById(id);
+        if (!todo) throw new Error("Todo not found");
+
+        const remainingTodos = this.todosList.filter(todo => todo.id !== id);
+        this.todosList = remainingTodos;
+        console.log('Todo deleted:', todo);
+        console.log('Updated todosList:', this.todosList);
+        this.selectTodo(null);
+        console.log('Selected todo:', this.selectedTodo);
+        this.onTodoDeleted(id);
     }
 };

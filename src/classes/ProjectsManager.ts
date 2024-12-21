@@ -29,30 +29,6 @@ export class ProjectsManager {
     totalCost: number = 0
     private selectedProjectId: string | null = null
 
-    constructor() {
-        const project = this.newProject({
-            name: "Default Project",
-            id: "123456789",
-            iconColor: "#686868",
-            description: "This is just a default app project",
-            status: "active",
-            userRole: "architect",
-            finishDate: new Date()
-        })
-
-        project?.addTodo(new Todo({
-            id: "123456789",
-            projectId: project.id,
-            title: "Default Todo",
-            description: "This is just a default todo",
-            finishDate: new Date(),
-            completed: true
-        }))
-
-        // this.setTodosList(project)
-        // project?.selectTodo(project.todosList[0])
-    }
-
     getSelectedProject(): string | null {
         return this.selectedProjectId
     }
@@ -62,11 +38,14 @@ export class ProjectsManager {
         // console.log("Selected project: ", this.selectedProjectId);
     }
 
-    getProjectById(id: string) {
-        const project = this.list.find((project) => {
-            return project.id === id
-        })
-        return project
+    getProjectById(id: string | null | undefined): Project | undefined {
+
+        if (!id) return undefined;
+
+        const project = this.list.find((project) => project.id === id);
+
+        return project;
+
     }
 
     getProjectByName(name: string) {
@@ -95,7 +74,7 @@ export class ProjectsManager {
         return filteredProjects
     }
 
-    newProject(data: IProject, id?: string) {
+    newProject(data: IProject, id?: string ) {
 
         // Check if name lenght is greater than 5
         if (data.name.length < 5) {
@@ -104,9 +83,10 @@ export class ProjectsManager {
         }
 
         // Check if project with the same id already exists
-        const existingProjectIndex = this.list.findIndex((project) => project.id === data.id);
-        if (existingProjectIndex !== -1) {
-            this.editProject(new Project(data))
+        let existingProjectIndex = this.getProjectById(data.id);
+        if (existingProjectIndex) {
+            // If the project exists, update it
+            this.editProject(new Project(data, id));
         } else {
 
             // Check if project name is already in use
@@ -119,7 +99,7 @@ export class ProjectsManager {
                 return
             }
 
-            const project = new Project(data, id)
+            const project = new Project(data)
 
             this.list.push(project)
             this.onProjectCreated(project)

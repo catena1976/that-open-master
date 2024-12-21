@@ -21,7 +21,7 @@ export function ProjectsPage(props: Props) {
     // State for handling alert messages
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-    // State to store the list of projects
+    // State to store the list of projects to display on the page 
     const [projects, setProjects] = useState<Project[]>(props.projectsManager.list)
     
     // Update projects state when a project is created, deleted, or updated
@@ -35,32 +35,37 @@ export function ProjectsPage(props: Props) {
         for (const doc of firebaseProjects.docs) {
             const data = doc.data()
             // Create a project object with the correct finishDate type
-            const project: IProject = {
+            const projectData: IProject = {
                 ...data,
                 finishDate: (data.finishDate as unknown as Firestore.Timestamp).toDate() // Convert Firestore Timestamp to Date object as unknown type to avoid TypeScript error as Firestore.Timestamp is not assignable to Date type 
             }
             try {
+                const firestoreId: string = doc.id
+                console.log("Firestore ID: ", firestoreId)
                 // Add the new project to the ProjectsManager
-                props.projectsManager.newProject(project, doc.id)
+                props.projectsManager.newProject(projectData, firestoreId as string)
+                console.log("New project created : ", firestoreId)
             } catch (error) {
                 // Handle project update if necessary
                 // Update the project
             }
         }     
     }
-    // Fetch projects from Firestore when the component mounts
-    React.useEffect(() => {
-        getFirestoreProjects()
-    }, [])
 
     // Generate project cards for rendering
     const projectCards = projects.map((project) => {
+        console.log("Project card: ", project)
         return (
             <Router.Link key={project.id} to={`/project/${project.id}`}>
                 <ProjectCard key={project.id} project={project} />
             </Router.Link>
     )
     })
+
+    // Fetch projects from Firestore when the component mounts
+    React.useEffect(() => {
+        getFirestoreProjects()
+    }, [])
 
     // Open the 'New Project' modal
     const onNewProjectClick = () => {

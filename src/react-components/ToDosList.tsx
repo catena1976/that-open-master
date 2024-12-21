@@ -6,13 +6,14 @@ import { ToDoCard } from './ToDoCard';
 interface Props {
     project: Project,
     handleOnClickDetails: (todo: Todo) => void,
-    todos: Todo[]
+    todos: Todo[],
+    selectedTodo: Todo | null
 }
 
 export function ToDosList(props: Props) {
 
     const { project, handleOnClickDetails } = props;
-    const [selectedTodo, setSelectedTodo] = useState<Todo | null>(project.getSelectedTodo());
+    const [selectedTodo, setSelectedTodo] = useState<Todo | null>(props.selectedTodo);
     console.log(selectedTodo);
 
     const todosCards = props.todos.map((todo) => {

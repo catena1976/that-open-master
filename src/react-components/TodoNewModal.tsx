@@ -13,12 +13,6 @@ export function TodoNewModal (props: Props) {
         <form onSubmit={onSubmit} id="new-todo-form">
         <div style={{ display: "flex", justifyContent: "space-between" }}>
             <h4>New Todo</h4>
-            {/* Button to delete the project */}
-            <button
-              style={{ backgroundColor: "red" }}
-            >
-              Delete To-Do
-            </button>
           </div>
           <div className="form-field-container">
             <label htmlFor="new-todo-title">Title</label>

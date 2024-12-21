@@ -7,11 +7,12 @@ interface Props {
   todo: Todo,
   handleOnCloseEditToDoModal: () => void,
   onTodoUpdated: (updatedTodo: Todo) => void
+  handleOnTodoDeletion: (todo: Todo) => void;
 }
 
 export function TodoEditModal(props: Props) {
 
-  const { todo, handleOnCloseEditToDoModal, onTodoUpdated } = props
+  const { todo, handleOnCloseEditToDoModal, onTodoUpdated, handleOnTodoDeletion } = props
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -58,6 +59,7 @@ export function TodoEditModal(props: Props) {
       completed: editFormData.get("new-todo-completed") !== null,
       finishDate: finishDate
     }
+    console.log("Updated todo data: ", udpdatedTodoData);
 
     try {
       await updateDocument<Partial<ITodo>>("/todos", todo.id, udpdatedTodoData);
@@ -78,6 +80,10 @@ export function TodoEditModal(props: Props) {
             <h4>Todo Edit</h4>
             {/* Button to delete the project */}
             <button
+              type="button"
+              onClick={() => {
+                console.log('Delete button clicked');
+                handleOnTodoDeletion(todo)}}
               style={{ backgroundColor: "red" }}
             >
               Delete To-Do
@@ -98,7 +104,6 @@ export function TodoEditModal(props: Props) {
             <textarea 
               id="edit-todo-description" 
               name="new-todo-description" 
-              defaultValue={""}
               value={selectedDescription}
               onChange={(e) => setSelectedDescription(e.target.value)}
               />
@@ -126,6 +131,8 @@ export function TodoEditModal(props: Props) {
               id="edit-todo-completed"
               name="new-todo-completed"
               type="checkbox"
+              value={selectedCompleted ? "on" : ""}
+              onChange={(e) => setSelectedCompleted(e.target.checked)}
             />
           </div>
           <div style={{ display: "flex", margin: "10px 0px 10px auto", columnGap: 10 }}>

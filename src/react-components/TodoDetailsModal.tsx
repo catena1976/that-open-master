@@ -1,15 +1,17 @@
 import * as React from 'react';
+import { Project } from '../classes/Project';
 import { Todo } from '../classes/Todo';
 
 interface Props {
     todo: Todo,
     handleOnCloseDetailsModal: () => void,
-    handelOnEditTodoClick: (selectedTodo: Todo | null) => void
+    handleOnEditTodoClick: (selectedTodo: Todo | null) => void
+    handleOnTodoDeletion: (todo: Todo) => void;
 }
 
 export function TodoDetailsModal (props: Props) {
 
-    const { todo, handleOnCloseDetailsModal, handelOnEditTodoClick } = props
+    const { todo, handleOnCloseDetailsModal, handleOnEditTodoClick, handleOnTodoDeletion } = props
 
     return (
         <dialog id="details-todo-modal" open>
@@ -18,6 +20,10 @@ export function TodoDetailsModal (props: Props) {
             <h4>Todo Details</h4>
             {/* Button to delete the project */}
             <button
+              type="button"
+              onClick={() => {
+                console.log('Delete button clicked');
+                handleOnTodoDeletion(todo)}}
               style={{ backgroundColor: "red" }}
             >
               Delete To-Do
@@ -43,7 +49,13 @@ export function TodoDetailsModal (props: Props) {
           </div>
           <div className="form-field-container">
             <label htmlFor="edit-todo-finish-date">Date</label>
-            <input id="edit-todo-finish-date" name="new-todo-finish-date" type="date" value={todo.finishDate.toISOString().slice(0,10)} />
+            <input 
+              id="edit-todo-finish-date" 
+              name="new-todo-finish-date" 
+              type="date" 
+              value={todo.finishDate.toISOString().slice(0,10) }
+              readOnly
+              />
           </div>
           <div className="form-field-container">
             <label style={{ justifyContent: "center" }} htmlFor="edit-todo-completed">
@@ -55,6 +67,7 @@ export function TodoDetailsModal (props: Props) {
               name="new-todo-completed"
               type="checkbox"
               checked={todo.completed}
+              readOnly
             />
           </div>
           {/* Other fields as necessary */}
@@ -64,7 +77,7 @@ export function TodoDetailsModal (props: Props) {
             </button>
             {/* Button to open the edit modal */}
             <button
-                onClick={() => handelOnEditTodoClick(todo)}
+                onClick={() => handleOnEditTodoClick(todo)}
                 id="edit-project-btn"
                 className="btn-secondary"
             >
